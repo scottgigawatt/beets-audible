@@ -15,118 +15,37 @@ This is a linux only workflow solution to quickly convert and tag your audiobook
 
 ### With Docker
 
-1. On the host computer create the following folder structure:
-
-```
-beets   
-│
-└───config
-│   │   config.yaml
-|
-└───scripts
-│   │   install-deps.sh
-│
-└───plugins
-│   └───audible
-│       │   [git clone] ...
-|
-|   docker-compose.yml
-```
-
-2. Save the following as the docker-compose file:
-
-```yaml
----
-version: "3"
-services:
-  beets:
-    image: lscr.io/linuxserver/beets:latest
-    container_name: beets
-    environment:
-      # Update as needed
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Singapore
-    volumes:
-      - ./config:/config
-      - ./plugins:/plugins
-      - ./scripts:/config/custom-cont-init.d
-      - /path/to/plex/audiobooks:/audiobooks
-      - /path/to/temp/BooksToProcess:/input
-    restart: unless-stopped
-```
-
-3. Save the following under `scripts/install-deps.sh`:
-
-   ```sh
-   #!/bin/bash
-   echo "Installing dependencies..."
-   # copyartifacts is optional but recommended
-   pip install requests markdownify natsort beets-copyartifacts3
-   ```
-
-4. Clone this repository into the `plugins` folder.
-5. Spin up the container: `docker-compose up -d`
-6. Update the config in `config/config.yaml` by replacing everything with the yaml below:
-
-```config.yaml
-   # add audible to the list of plugins
-   # copyartifacts is optional but recommended if you're manually specifying metadata via metadata.yml, see the "Importing non-audible content" section
-   plugins: copyartifacts edit fromfilename scrub audible plexupdate
-
-   directory: /audiobooks
-
-   # Place books in their own folders to be compatible with Booksonic and Audiobookshelf servers
-   paths:
-     # For books that belong to a series
-     "albumtype:audiobook series_name::.+ series_position::.+": $albumartist/%ifdef{series_name}/%ifdef{series_position} - $album%aunique{}/$track - $title ($year)
-     "albumtype:audiobook series_name::.+": $albumartist/%ifdef{series_name}/$album%aunique{}/$track - $title ($year)
-     # Stand-alone books
-     "albumtype:audiobook": $albumartist/$album%aunique{}/$track - $title ($year)
-     default: $albumartist/$album%aunique{}/$track - $title ($year)
-     singleton: Non-Album/$artist - $title
-     comp: Compilations/$album%aunique{}/$track - $title
-     albumtype_soundtrack: Soundtracks/$album/$track $title
-
-   # disables musicbrainz lookup, as it doesn't help for audiobooks
-   # This is a workaround, as there is currently no built-in way of doing so
-   # see https://github.com/beetbox/beets/issues/400
-   musicbrainz:
-     host: localhost:5123
-
-   pluginpath:
-     - /plugins/audible # point this to the directory which contains audible.py
-
-   audible:
-     # if the number of files in the book is the same as the number of chapters from Audible,
-     # attempt to match each file to an audible chapter
-     match_chapters: true
-     source_weight: 0.0 # disable the source_weight penalty
-     fetch_art: true # whether to retrieve cover art
-     
-   plex:
-     host: localhost
-     port: 32400
-     token: token # How to find: https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
-     library_name: Audiobooks # change to your plex audiobook library
-
-   copyartifacts:
-     extensions: .yml # so that metadata.yml is copied, see below
-
-   scrub:
-     auto: yes # optional, enabling this is personal preference
-   ```
-7. Run the `beet --version` command and verify that the audible plugin appears in the list of plugins.
+1. Open a terminal and clone this repository  
+    * `git clone https://github.com/seanap/beets-audible.git`
+2. Edit `docker-compose.yml`  
+    * `nano beets-audible/beets/docker-compose.yml`
+    * Update the following lines:
+      * `PUID`
+      * `PGID`
+      * `TZ`
+      * `/path/to/plex/audibooks` # Location of your plex audiobooks folder
+      * `/path/to/temp/BooksToProcess` # Location of Untagged books ready for tagging
+3. Edit `config.yaml`  
+    * `nano beets-audible/beets/config/config.yaml`
+    * Update the `Plex` section at the end of the file:
+      * `host` # IP of plex server
+      * `token` # https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
+      * `library_name` # Name of plex audiobook library
+4. `cd beets-audible/beets && docker-compose up -d` # Start the container
+7. `docker exec -it beets sh` # Start the interactive shell inside the beets container
+8. `beet --version` # Verify that the audible plugin appears in the list of plugins.
 
 ## Usage
 
-When importing audiobooks into Beets, ensure that the files for each book are in its own folder, even if the audiobook only consists of a single file. This is so that the files for a book are treated as an album by Beets. Avoid putting files from multiple books in the same folder.
+> :warning: **Ensure that each book is in it's own folder**, even if the audiobook only consists of a single file. This is so that the files for a book are treated as an album by Beets. Avoid putting files from multiple books in the same folder.
 
-When ready, start the import with the following command:
+* Add books that need tagging to your `../temp/BooksToProcess` folder you configured in the `docker-compose.yml` file
+* Start the interactive shell inside the beets docker container (ALTERNATIVE: Portainer>beets>console)
+  * `docker exec -it beets sh`
+*  `beet import /input` # Do not modify
+> To exit the beets docker shell simply type `exit`
 
-```sh
-beet import /path/to/audiobooks
-```
+## Notes
 
 The following sources of information are used to search for book matches in order of preference:
 
@@ -189,16 +108,16 @@ Terry Goodkind/
       cover.png
       desc.txt
       reader.txt
-      wizards first rule.m4b
+      01 - Wizards first rule (1989).m4b
 George Orwell/
   Animal Farm/
-    Animal Farm.m4b
+    01 - Animal Farm (1935).m4b
     cover.png
     desc.txt
     reader.txt
 ```
 
-Desc.txt and reader.txt contain the book description and narrator populated from Audible.
+Desc.txt and reader.txt contain the book description and narrator populated from Audible. These are needed for Booksonic servers only.
 
 ## Tags Written
 
@@ -231,4 +150,4 @@ The plugin writes the following tags:
 
 ## Plex Integration
 
-If the directory where Beets imports audiobooks to is also where you've set Plex to serve content from, you can enable the [plexupdate plugin](https://beets.readthedocs.io/en/stable/plugins/plexupdate.html) to notify Plex when new books are imported.
+If the directory where Beets imports audiobooks to is also where you've set Plex to serve content from, the [plexupdate plugin] (https://beets.readthedocs.io/en/stable/plugins/plexupdate.html) is enabled by default.  It will automatically notify Plex when new books are imported.
