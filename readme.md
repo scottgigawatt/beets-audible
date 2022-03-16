@@ -1,38 +1,89 @@
 # Beets-audible: Organize Your Audiobook Collection With Beets
+This is my fork of the amazing Beets-Audible plug-in made by Neurrone https://github.com/Neurrone/beets-audible
 
 This is a plugin that allows Beets to manage audiobook collections.
 
 It fetches audiobook metadata via the Audible and [Audnex API](https://github.com/laxamentumtech/audnexus). With this data, it ensures books have the correct tags and makes the collection ready to be served by Plex, Audiobookshelf or Booksonic.
 
+This fork is intended to be used in conjunction with my docker-m4b-tool https://github.com/seanap/docker-m4b-tool this way all the folder names and functions line up.
+
 ## Motivation
 
-[seanap's audiobook organization guide](https://github.com/seanap/Plex-Audiobook-Guide) describes a workflow for adding tags to audiobooks and moving the files to the right folders.
-
-However, it relies on using Mp3tag, a gui tool which does not lend itself to automation. Mp3tag works only on Windows.
-
-This Beets plugin solves both problems.
+This is a linux only workflow solution to quickly convert and tag your audiobook files to a standard that works with plex.  This is a CLI only tool, which is actually a great interface to quickly tag a large number of files.
 
 ## Installation
 
-1. Clone this repository.
-2. Install dependencies via pip: `pip install markdownify natsort beets-copyartifacts3` (copyartifacts is optional). See the next section instead if you're running Beets in Docker (highly recommended as it makes it easier to maintain a separate Beets installation dedicated to audiobooks).
-3. Use a separate beets config and database for managing audiobooks. This is the recommended Beets config for this plugin:
+### With Docker
 
-   ```yaml
+1. On the host computer create the following folder structure:
+
+```
+beets   
+│
+└───config
+│   │   config.yaml
+|
+└───scripts
+│   │   install-deps.sh
+│
+└───plugins
+│   └───audible
+│       │   [git clone] ...
+|
+|   docker-compose.yml
+```
+
+2. Save the following as the docker-compose file:
+
+```yaml
+---
+version: "3"
+services:
+  beets:
+    image: lscr.io/linuxserver/beets:latest
+    container_name: beets
+    environment:
+      # Update as needed
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Singapore
+    volumes:
+      - ./config:/config
+      - ./plugins:/plugins
+      - ./scripts:/config/custom-cont-init.d
+      - /path/to/plex/audiobooks:/audiobooks
+      - /path/to/temp/BooksToProcess:/input
+    restart: unless-stopped
+```
+
+3. Save the following under `scripts/install-deps.sh`:
+
+   ```sh
+   #!/bin/bash
+   echo "Installing dependencies..."
+   # copyartifacts is optional but recommended
+   pip install requests markdownify natsort beets-copyartifacts3
+   ```
+
+4. Clone this repository into the `plugins` folder.
+5. Spin up the container: `docker-compose up -d`
+6. Update the config in `config/config.yaml` by replacing everything with the yaml below:
+
+```config.yaml
    # add audible to the list of plugins
    # copyartifacts is optional but recommended if you're manually specifying metadata via metadata.yml, see the "Importing non-audible content" section
-   plugins: copyartifacts edit fromfilename scrub audible
+   plugins: copyartifacts edit fromfilename scrub audible plexupdate
 
    directory: /audiobooks
 
    # Place books in their own folders to be compatible with Booksonic and Audiobookshelf servers
    paths:
      # For books that belong to a series
-     "albumtype:audiobook series_name::.+ series_position::.+": $albumartist/%ifdef{series_name}/%ifdef{series_position} - $album%aunique{}/$track - $title
-     "albumtype:audiobook series_name::.+": $albumartist/%ifdef{series_name}/$album%aunique{}/$track - $title
+     "albumtype:audiobook series_name::.+ series_position::.+": $albumartist/%ifdef{series_name}/%ifdef{series_position} - $album%aunique{}/$track - $title ($year)
+     "albumtype:audiobook series_name::.+": $albumartist/%ifdef{series_name}/$album%aunique{}/$track - $title ($year)
      # Stand-alone books
-     "albumtype:audiobook": $albumartist/$album%aunique{}/$track - $title
-     default: $albumartist/$album%aunique{}/$track - $title
+     "albumtype:audiobook": $albumartist/$album%aunique{}/$track - $title ($year)
+     default: $albumartist/$album%aunique{}/$track - $title ($year)
      singleton: Non-Album/$artist - $title
      comp: Compilations/$album%aunique{}/$track - $title
      albumtype_soundtrack: Soundtracks/$album/$track $title
@@ -52,6 +103,12 @@ This Beets plugin solves both problems.
      match_chapters: true
      source_weight: 0.0 # disable the source_weight penalty
      fetch_art: true # whether to retrieve cover art
+     
+   plex:
+     host: localhost
+     port: 32400
+     token: token # How to find: https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
+     library_name: Audiobooks # change to your plex audiobook library
 
    copyartifacts:
      extensions: .yml # so that metadata.yml is copied, see below
@@ -59,57 +116,6 @@ This Beets plugin solves both problems.
    scrub:
      auto: yes # optional, enabling this is personal preference
    ```
-
-4. Run the `beet --version` command and verify that the audible plugin appears in the list of plugins.
-
-### With Docker
-
-1. Create the following folder structure:
-
-   ```
-   beets
-     config/
-     plugins/
-     scripts/
-       install-deps.sh # see step 3
-     docker-compose.yml # see step 2
-   ```
-
-2. Save the following as the docker-compose file:
-
-   ```yaml
-   ---
-   version: "3"
-   services:
-     beets:
-       image: lscr.io/linuxserver/beets:latest
-       container_name: beets
-       environment:
-         # Update as needed
-         - PUID=1000
-         - PGID=1000
-         - TZ=Asia/Singapore
-       volumes:
-         - ./config:/config
-         - ./plugins:/plugins
-         - ./scripts:/config/custom-cont-init.d
-         - /path/to/audiobooks:/audiobooks
-         - /path/to/import/books/from:/input
-       restart: unless-stopped
-   ```
-
-3. Save the following under `scripts/install-deps.sh`:
-
-   ```sh
-   #!/bin/bash
-   echo "Installing dependencies..."
-   # copyartifacts is optional but recommended
-   pip install markdownify natsort beets-copyartifacts3
-   ```
-
-4. Clone this repository into the `plugins` folder.
-5. Spin up the container: `docker-compose up -d`
-6. Update the config in `config/config.yaml` as described above.
 7. Run the `beet --version` command and verify that the audible plugin appears in the list of plugins.
 
 ## Usage
