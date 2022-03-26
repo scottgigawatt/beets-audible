@@ -1,6 +1,6 @@
 # add audible to the list of plugins
 # copyartifacts is optional but recommended if you're manually specifying metadata via metadata.yml, see the "Importing non-audible content" section
-plugins: copyartifacts edit fromfilename scrub audible plexupdate
+plugins: copyartifacts edit fromfilename scrub audible plexupdate web
 
 directory: /audiobooks
 
