@@ -1,5 +1,5 @@
 # Beets-audible: Organize Your Audiobook Collection With Beets
-This is my fork of the amazing Beets-Audible plug-in made by Neurrone https://github.com/Neurrone/beets-audible
+This is my fork of the awesome Beets-Audible plug-in made by Neurrone https://github.com/Neurrone/beets-audible
 
 This is a plugin that allows Beets to manage audiobook collections.
 
@@ -15,18 +15,15 @@ This is a linux only workflow solution to quickly convert and tag your audiobook
 
 ### With Docker
 
-1. Open a terminal and clone this repository  
-    * `git clone https://github.com/seanap/beets-audible.git`
-2. Edit `docker-compose.yml`  
-    * `nano beets-audible/beets/docker-compose.yml`
+1. `git clone https://github.com/seanap/beets-audible.git` # Open a terminal and clone this repository  
+2. `nano beets-audible/beets/docker-compose.yml` # Edit `docker-compose.yml`  
     * Update the following lines:
       * `PUID`
       * `PGID`
       * `TZ`
       * `/path/to/plex/audibooks` # Location of your plex audiobooks folder
-      * `/path/to/temp/BooksToProcess` # Location of Untagged books ready for tagging
-3. Edit `config.yaml`  
-    * `nano beets-audible/beets/config/config.yaml`
+      * `/path/to/temp/untagged` # Location of Untagged books ready for tagging
+3. `nano beets-audible/beets/config/config.yaml` # Edit `config.yaml`  
     * Update the `Plex` section at the end of the file:
       * `host` # IP of plex server
       * `token` # https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token
@@ -39,10 +36,10 @@ This is a linux only workflow solution to quickly convert and tag your audiobook
 
 > :warning: **Ensure that each book is in it's own folder**, even if the audiobook only consists of a single file. This is so that the files for a book are treated as an album by Beets. Avoid putting files from multiple books in the same folder.
 
-* Add books that need tagging to your `../temp/BooksToProcess` folder you configured in the `docker-compose.yml` file
-* Start the interactive shell inside the beets docker container (ALTERNATIVE: Portainer>beets>console)
-  * `docker exec -it beets sh`
-*  `beet import /input` # Do not modify
+* Add books that need tagging to your `../temp/untagged` folder you configured in the `docker-compose.yml` file
+* `docker exec -it beets sh` # Start the interactive shell inside the beets docker container
+  * ALTERNATIVE: Portainer>beets>console
+*  `beet import /untagged` # Do not modify - starts the cli tool beets
 > To exit the beets docker shell simply type `exit`
 
 ## Notes
