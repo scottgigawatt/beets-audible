@@ -13,5 +13,5 @@ services:
       - ./plugins:/plugins
       - ./scripts:/config/custom-cont-init.d
       - /path/to/plex/audiobooks:/audiobooks
-      - /path/to/temp/BooksToProcess:/input
+      - /path/to/temp/untagged:/untagged
     restart: unless-stopped
