@@ -5,11 +5,13 @@ This is a plugin that allows Beets to manage audiobook collections.
 
 It fetches audiobook metadata via the Audible and [Audnex API](https://github.com/laxamentumtech/audnexus). With this data, it ensures books have the correct tags and makes the collection ready to be served by Plex, Audiobookshelf or Booksonic.
 
-This fork is intended to be used in conjunction with my docker-m4b-tool https://github.com/seanap/docker-m4b-tool this way all the folder names and functions line up.
+This fork is intended to be used in conjunction with my [auto-m4b](https://github.com/seanap/auto-m4b) docker this way all the folder names and functions line up.
 
 ## Motivation
 
 This is a linux only workflow solution to quickly convert and tag your audiobook files to a standard that works with plex.  This is a CLI only tool, which is actually a great interface to quickly tag a large number of files.
+
+This was developed to handle book files with no tags, bad tags, or that need to be named and organized in the right folder structure.
 
 ## Installation
 
@@ -41,6 +43,18 @@ This is a linux only workflow solution to quickly convert and tag your audiobook
   * ALTERNATIVE: Portainer>beets>console
 *  `beet import /untagged` # Do not modify - starts the cli tool beets
 > To exit the beets docker shell simply type `exit`
+
+#### Create a script shortcut that will: 
+* auto ssh into the docker host computer
+* execute the docker exec command
+* which passes through the command to start beets
+
+Windows
+* Install putty/plink and make sure plink is executable from HOSTS
+* save the following line as `runbeets.bat` and edit with your [USER] [IP] [PASS]
+* `plink -ssh user@192.168.1.123 -pw supersecretpass -P 22 -t (docker exec -it beets sh -c 'beet import /untagged')`
+* double-click `runbeets.bat`
+
 
 ## Notes
 
