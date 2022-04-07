@@ -36,24 +36,26 @@ This was developed to handle book files with no tags, bad tags, or that need to 
 
 ## Usage
 
-> :warning: **Ensure that each book is in it's own folder**, even if the audiobook only consists of a single file. This is so that the files for a book are treated as an album by Beets. Avoid putting files from multiple books in the same folder.
+> :warning: **Ensure that each book is in it's own folder**, even if the audiobook only consists of a single file. This is so that the files for a book are treated as an album by Beets.
+
 
 * Add books that need tagging to your `../temp/untagged` folder you configured in the `docker-compose.yml` file
-* `docker exec -it beets sh` # Start the interactive shell inside the beets docker container
+* `docker exec -it beets sh -c 'beet import /untagged'` # Start the interactive shell inside the beets docker container and run beets on your `.../temp/untagged` folder.
   * ALTERNATIVE: Portainer>beets>console
-*  `beet import /untagged` # Do not modify - starts the cli tool beets
 > To exit the beets docker shell simply type `exit`
 
-#### Create a script shortcut that will: 
-* auto ssh into the docker host computer
-* execute the docker exec command
-* which passes through the command to start beets
+### Create a script shortcut that will: 
+* Automatically ssh into the docker host computer from your Windwos PC
+* Execute the docker exec command
+* Run beets and import your `.../temp/untagged` folder
 
-Windows
-* Install putty/plink and make sure plink is executable from HOSTS
-* save the following line as `runbeets.bat` and edit with your [USER] [IP] [PASS]
-* `plink -ssh user@192.168.1.123 -pw supersecretpass -P 22 -t (docker exec -it beets sh -c 'beet import /untagged')`
-* double-click `runbeets.bat`
+#### Windows
+* Install [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
+* Open Powershell with admin rights (Right click > `Run as Administrator`), run the following line:  
+  * `Set-ItemProperty HKCU:\Console VirtualTerminalLevel -Type DWORD 1`
+* Open notepad++ and save the following line as `runbeets.bat` and edit with your [USER] [IP] [PW]  
+  * `plink -ssh user@192.168.0.123 -pw supersecretpass -P 22 -t (docker exec -it beets sh -c 'beet import /untagged')`
+* double-click `runbeets.bat` to run
 
 
 ## Notes
