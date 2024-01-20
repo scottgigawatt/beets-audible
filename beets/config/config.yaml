@@ -20,7 +20,7 @@ paths:
 # This is a workaround see https://github.com/beetbox/beets/issues/400
 # musicbrainz:
 #   host: localhost:5123
-  
+
 musicbrainz:
   enabled: no
 
@@ -32,15 +32,15 @@ audible:
   # attempt to match each file to an audible chapter
   match_chapters: true
   source_weight: 0.0 # disable the source_weight penalty
-  
+
 import:
   write: yes
   copy: no
   move: yes
   hardlink: no
-  timid: no
+  timid: yes
   log: /config/beet.log
-  
+
   fetch_art: true # whether to retrieve cover art
 
 copyartifacts:
@@ -48,9 +48,9 @@ copyartifacts:
 
 scrub:
   auto: yes # optional, enabling this is personal preference
-  
+
 plex:
-  host: localhost
+  host: draco.local
   port: 32400
-  token: xxxxxxxxxxxxxxxxxxxx # Your plex token
+  token: abc123
   library_name: Audiobooks # The name of your audiobook library in Plex

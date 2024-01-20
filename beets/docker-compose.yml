@@ -7,11 +7,12 @@ services:
       # Update as needed
       - PUID=1000
       - PGID=1000
-      - TZ=Asia/Singapore
+      - TZ=America/New_York
     volumes:
       - ./config:/config
       - ./plugins:/plugins
       - ./scripts:/config/custom-cont-init.d
-      - /path/to/plex/audiobooks:/audiobooks
-      - /path/to/temp/untagged:/untagged
+      - /Users/edward/Downloads/FakeLib:/audiobooks
+      #- /Volumes/audiobooks/edward:/audiobooks
+      - /Users/edward/Downloads/___untagged:/untagged
     restart: unless-stopped
