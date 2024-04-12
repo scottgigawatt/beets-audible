@@ -52,5 +52,5 @@ scrub:
 plex:
   host: draco.local
   port: 32400
-  token: abc123
+  token: vgyGP1yrRZDLHxft4NpV
   library_name: Audiobooks # The name of your audiobook library in Plex
