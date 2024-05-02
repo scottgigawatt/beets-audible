@@ -12,6 +12,6 @@ services:
       - ./plugins:/plugins
       - ./scripts:/config/custom-cont-init.d
       - /Users/edward/Downloads/FakeLib:/audiobooks
-      #- /Volumes/audiobooks/edward:/audiobooks
+      # - /Volumes/audiobooks/edward:/audiobooks
       - /Users/edward/Downloads/___untagged:/untagged
     restart: unless-stopped
